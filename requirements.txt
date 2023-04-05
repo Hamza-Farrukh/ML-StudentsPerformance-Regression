@@ -1,0 +1,11 @@
+notebook
+jupyter_contrib_nbextensions
+numpy
+pandas
+matplotlib
+seaborn
+plotly
+scikit-learn
+catboost
+xgboost
+# -e .
