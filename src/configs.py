@@ -1,5 +1,5 @@
+# Built-in
 import os
-
 from dataclasses import dataclass
 
 
@@ -14,3 +14,8 @@ class DataIngestionConfig:
 class DataTransformationConfig:
     preprocessor_obj_file_path = os.path.join('models', 'preprocessor.pkl')
     target_column_name = 'math score'
+
+
+@dataclass
+class ModelTrainerConfig:
+    trained_model_file_path = os.path.join("models", "model.pkl")

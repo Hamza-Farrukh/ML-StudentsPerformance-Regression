@@ -1,15 +1,22 @@
+# Built-in
 import sys
 
+# Data handling
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
+
+# Pipeline
 from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+
+# Transformers
+from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from src.exception import CustomException
+# Custom
 from src.logger import logging
 from src.utils import save_object
+from src.exception import CustomException
 from src.configs import DataTransformationConfig
 
 
@@ -18,22 +25,24 @@ class DataTransformation:
         self.data_transformation_config = DataTransformationConfig()
 
     @staticmethod
-    def get_data_transformer_object(raw_data_path):
+    def get_data_transformer_object(target_column_name, raw_data_path):
         """
         This function is responsible for the data transformation
         :return:
         """
         try:
             data = pd.read_csv(raw_data_path)
+            target_column_name = target_column_name
             numerical_columns = [column for column in data if data[column].dtype != 'O']
+            numerical_columns.remove(target_column_name)
             categorical_columns = [column for column in data if data[column].dtype == 'O']
 
-            # num_pipeline = Pipeline(
-            #     steps=[
-            #         ('Imputer', SimpleImputer(strategy='mean')),
-            #         ('Scaler', StandardScaler())
-            #     ]
-            # )
+            num_pipeline = Pipeline(
+                steps=[
+                    ('Imputer', SimpleImputer(strategy='mean')),
+                    ('Scaler', StandardScaler())
+                ]
+            )
 
             cat_pipeline = Pipeline(
                 steps=[
@@ -47,7 +56,7 @@ class DataTransformation:
 
             preprocessor = ColumnTransformer(
                 transformers=[
-                    # ('Numerical', num_pipeline, numerical_columns),
+                    ('Numerical', num_pipeline, numerical_columns),
                     ('Categorical', cat_pipeline, categorical_columns)
                 ],
                 remainder='drop'
@@ -61,13 +70,12 @@ class DataTransformation:
         try:
             train_data = pd.read_csv(train_path)
             test_data = pd.read_csv(test_path)
+            target_column_name = DataTransformationConfig.target_column_name
 
             logging.info("Reading the train and test data")
             logging.info("Obtaining the preprocessing object")
 
-            preprocessing_obj = self.get_data_transformer_object(raw_data_path=raw_path)
-
-            target_column_name = DataTransformationConfig.target_column_name
+            preprocessing_obj = self.get_data_transformer_object(target_column_name, raw_data_path=raw_path)
 
             x_train = train_data.drop(columns=[target_column_name], axis=1)
             y_train = train_data[target_column_name]
@@ -97,9 +105,9 @@ class DataTransformation:
             )
 
             return (
-                x_train_arr,
+                train_arr,
                 # np.array(y_train),
-                x_test_arr,
+                test_arr,
                 # np.array(y_test),
                 self.data_transformation_config.preprocessor_obj_file_path,
             )
