@@ -1,0 +1,44 @@
+columns:
+  categorical:
+  - - gender
+    - Gender
+    - - Female
+      - Male
+  - - race/ethnicity
+    - Race/Ethnicity
+    - - Group A
+      - Group B
+      - Group C
+      - Group D
+      - Group E
+  - - parental_level_of_education
+    - Parental Level Of Education
+    - - Associate'S Degree
+      - Bachelor'S Degree
+      - High School
+      - Master'S Degree
+      - Some College
+      - Some High School
+  - - lunch
+    - Lunch
+    - - Free/Reduced
+      - Standard
+  - - test_preparation_course
+    - Test Preparation Course
+    - - Completed
+      - None
+  continuous:
+  - - reading_score
+    - Reading Score
+  - - writing_score
+    - Writing Score
+  discrete: []
+  time: []
+features_in:
+- gender
+- race/ethnicity
+- parental_level_of_education
+- lunch
+- test_preparation_course
+- reading_score
+- writing_score

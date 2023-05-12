@@ -1,0 +1,14 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block 'body' %}
+    <div class="container-fluid align-items-start text-secondary bg-light" >
+        <div class="container-fluid">
+            {%include 'analysis/eda_report.html' %}
+        </div>
+    </div>
+{% endblock 'body' %}
+
+{% block 'JS'}
+    <script></script>
+{% endblock 'JS'}

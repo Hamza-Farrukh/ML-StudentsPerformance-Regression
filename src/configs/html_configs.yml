@@ -1,0 +1,6 @@
+plot:
+  correlation:
+    cmap:
+      Blues
+title:
+  Web App

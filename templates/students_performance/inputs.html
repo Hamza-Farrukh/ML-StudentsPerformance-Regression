@@ -1,0 +1,27 @@
+{% load static %}
+
+<form action="{% url 'results' %}" method="GET">
+	<div class="row row-cols-2 mx-2 my-3">
+		{% for feature in continuous %}
+			<div class='col my-3'>
+				<h4><label for="{{ feature.0 }}"> {{ feature.1 }} </label></h4>
+				<input class="form-control" type="text" name="{{ feature.0 }}" id="{{ feature.0 }}" value="0" aria-label="default input example">
+			</div>
+		{% endfor %}
+		{% for feature in categorical %}
+			<div class='col my-3'>
+				<h4><label for="{{ feature.0 }}"> {{ feature.1 }} </label></h4>
+				<select class="form-select" name="{{ feature.0 }}" id="{{ feature.0 }}" aria-label="Default select example">
+					{% for value in feature.2 %}
+					  <option value="{{ value }}" Selected> {{ value }} </option>
+					{% endfor %}
+				</select>
+			</div>
+		{% endfor %}
+	</div>
+	<div class="row row-cols-1 mx-2 my-3">
+		<div class="col my-3">
+    			<button type="submit" class="btn btn-primary">Calculate</button>
+  		</div>
+	</div>
+</form>

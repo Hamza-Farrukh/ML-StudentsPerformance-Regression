@@ -1,0 +1,13 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block 'body' %}
+<h1 class="container-fluid text-light my-3">Enter the following values:</h1>
+<div class="container text-light" >
+	{%include 'students_performance/inputs.html' %}
+</div>
+{% endblock 'body' %}
+
+{% block 'JS'}
+    <script></script>
+{% endblock 'JS'}

@@ -1,8 +1,8 @@
 # Built-in
 import sys
+import yaml
 
-# Data handling
-import numpy as np
+# Data Handling
 import pandas as pd
 
 # Pipeline
@@ -15,9 +15,9 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # Custom
 from src.logger import logging
-from src.utils import save_object
 from src.exception import CustomException
-from src.configs import DataTransformationConfig
+from src.configs.variable_configs import DataTransformationConfig
+from src.utils import save_object, separate_feature_types, organize_features
 
 
 class DataTransformation:
@@ -25,90 +25,99 @@ class DataTransformation:
         self.data_transformation_config = DataTransformationConfig()
 
     @staticmethod
-    def get_data_transformer_object(target_column_name, raw_data_path):
+    def get_data_transformer_object(columns):
         """
-        This function is responsible for the data transformation
-        :return:
+        This function contains the data transformation pipeline.
+        :return: preprocessor_object
         """
         try:
-            data = pd.read_csv(raw_data_path)
-            target_column_name = target_column_name
-            numerical_columns = [column for column in data if data[column].dtype != 'O']
-            numerical_columns.remove(target_column_name)
-            categorical_columns = [column for column in data if data[column].dtype == 'O']
-
-            num_pipeline = Pipeline(
+            continuous_pipeline = Pipeline(
                 steps=[
                     ('Imputer', SimpleImputer(strategy='mean')),
                     ('Scaler', StandardScaler())
                 ]
             )
 
-            cat_pipeline = Pipeline(
+            categorical_pipeline = Pipeline(
                 steps=[
                     ('Imputer', SimpleImputer(strategy='most_frequent')),
                     ('Encoder', OneHotEncoder(sparse_output=False)),
                 ]
             )
 
-            logging.info(f"Numerical features: {numerical_columns}")
-            logging.info(f"Categorical features: {categorical_columns}")
+            logging.info(f"Continuous features: {columns['continuous']}")
+            logging.info(f"Categorical features: {columns['categorical']}")
 
             preprocessor = ColumnTransformer(
                 transformers=[
-                    ('Numerical', num_pipeline, numerical_columns),
-                    ('Categorical', cat_pipeline, categorical_columns)
+                    ('Continuous', continuous_pipeline, columns['continuous']),
+                    ('Categorical', categorical_pipeline, columns['categorical'])
                 ],
                 remainder='drop'
             )
 
             return preprocessor
+
         except Exception as e:
             raise CustomException(e, sys)
 
-    def initiate_data_transformation(self, raw_path, train_path, test_path):
+    def initiate_data_transformation(self, train_data_path, test_data_path):
+        """
+        This function handles all the transformation on the train and test data.
+
+        :param train_data_path: path of the training dataset
+        :param test_data_path: path of the testing dataset
+        :return: (X_train_path, y_train_path, X_test_path, y_test_path, preprocessor_obj_file_path)
+        """
         try:
-            train_data = pd.read_csv(train_path)
-            test_data = pd.read_csv(test_path)
-            target_column_name = DataTransformationConfig.target_column_name
-
             logging.info("Reading the train and test data")
-            logging.info("Obtaining the preprocessing object")
+            train_data = pd.read_csv(train_data_path, na_filter=False)
+            test_data = pd.read_csv(test_data_path, na_filter=False)
+            target_column_name = self.data_transformation_config.target_column_name
 
-            preprocessing_obj = self.get_data_transformer_object(target_column_name, raw_data_path=raw_path)
-
-            x_train = train_data.drop(columns=[target_column_name], axis=1)
+            # Splitting the training and target features
+            X_train = train_data.drop(columns=[target_column_name], axis=1)
             y_train = train_data[target_column_name]
 
-            x_test = test_data.drop(columns=[target_column_name], axis=1)
+            X_test = test_data.drop(columns=[target_column_name], axis=1)
             y_test = test_data[target_column_name]
 
-            logging.info(
-                f"Applying preprocessing object on training and testing dataframe"
-            )
+            # Getting the list of features and their types and organizing the features
+            columns = separate_feature_types(X_train)
+            features_list = organize_features(X_train, columns)
 
-            x_train_arr = preprocessing_obj.fit_transform(x_train)
-            x_test_arr = preprocessing_obj.transform(x_test)
+            logging.info("Obtaining the preprocessing object")
+            preprocessing_obj = self.get_data_transformer_object(columns)
 
-            train_arr = np.c_[
-                x_train_arr, np.array(y_train)
-            ]
-            test_arr = np.c_[
-                x_test_arr, np.array(y_test)
-            ]
+            logging.info(f"Applying preprocessing object on training and testing dataframe")
+            X_train = pd.DataFrame(preprocessing_obj.fit_transform(X_train))
+            X_test = pd.DataFrame(preprocessing_obj.transform(X_test))
 
-            logging.info(f"Saved the preprocessor object")
+            # Saving the features in yaml config file
+            features_dict = {
+                'features_in': preprocessing_obj.feature_names_in_.tolist(),
+                'columns': features_list
+            }
+            with open(self.data_transformation_config.features_configs_save_path, 'w') as f:
+                yaml.dump(features_dict, f)
 
+            # Saving the transformed train and test data
+            X_train.to_csv(self.data_transformation_config.X_train_path, index=False)
+            y_train.to_csv(self.data_transformation_config.y_train_path, index=False)
+            X_test.to_csv(self.data_transformation_config.X_test_path, index=False)
+            y_test.to_csv(self.data_transformation_config.y_test_path, index=False)
+
+            logging.info(f"Saving the preprocessor object")
             save_object(
                 file_path=self.data_transformation_config.preprocessor_obj_file_path,
                 obj=preprocessing_obj
             )
 
             return (
-                train_arr,
-                # np.array(y_train),
-                test_arr,
-                # np.array(y_test),
+                self.data_transformation_config.X_train_path,
+                self.data_transformation_config.y_train_path,
+                self.data_transformation_config.X_test_path,
+                self.data_transformation_config.y_test_path,
                 self.data_transformation_config.preprocessor_obj_file_path,
             )
 

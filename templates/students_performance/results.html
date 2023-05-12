@@ -1,0 +1,60 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{{ result }}
+{% block 'body' %}
+    {{ result }}
+    <div class="container my-3">
+        <table class="table table-responsive table-bordered my-3 fs-4">
+            <thead class="table-light table-group-divider text-center">
+                <tr class="table-dark">
+                    <th colspan="3" scope="col">Inputs</th>
+                </tr>
+            </thead>
+          <thead class="table-light text-center">
+            <tr class="table-secondary">
+                <th scope="col">Sr.</th>
+                <th scope="col">Feature</th>
+                <th scope="col">Value</th>
+            </tr>
+          </thead>
+          <tbody class="text-light text-center">
+          {% for feature in features %}
+            <tr>
+                <th scope="row"> {{ forloop.counter }} </th>
+                <td>{{ feature.0 }}</td>
+                <td>{{ feature.1 }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+    </div>
+
+    <div class="container my-3">
+        <table class="table table-responsive table-bordered my-3 fs-4">
+            <thead class="table-light table-group-divider text-center">
+            <tr class="table-dark">
+                <th colspan="3" scope="col"> Results </th>
+            </tr>
+          </thead>
+          <thead class="table-light text-center">
+            <tr class="table-secondary">
+                <th scope="col"> Sr. </th>
+                <th scope="col"> Feature </th>
+                <th scope="col"> Value </th>
+            </tr>
+          </thead>
+          <tbody class="text-light text-center">
+            <tr>
+                <th scope="row">1</th>
+                <td> Result </td>
+                <td> {{ result }} </td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+{% endblock 'body' %}
+
+{% block 'JS'}
+    <script></script>
+{% endblock 'JS'}
